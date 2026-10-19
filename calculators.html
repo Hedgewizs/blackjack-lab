@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackjack Lab — Edge Calculators</title>
+<meta name="description" content="Blackjack house edge calculator: pick a variant or build custom rules. Verified rule-effect math, bilingual.">
+<link rel="stylesheet" href="styles.css">
+<script src="i18n.js"></script>
+<script src="blackjack-engine.js"></script>
+<script>
+Object.assign(I18N.en,{
+  calc_title:"Calculators",
+  var_h:"Variant Edge", var_d:"Pick one of the six variants to see its house edge and the rules driving it.",
+  variant:"Variant", edge:"House edge",
+  cust_h:"Custom Rules Edge", cust_d:"Build your own table: the calculator starts from a ~0.40% baseline (6 decks, S17, 3:2, DAS, late surrender) and adds each rule change.",
+  decks:"Decks", s17:"Dealer stands on soft 17", bjpay:"Blackjack pays",
+  das:"Double after split allowed", surr:"Late surrender offered", dbl:"Double on",
+  dbl_any:"Any two cards", dbl_1011:"10–11 only", dbl_911:"9–11 only",
+  rsa:"Resplit aces allowed", calc:"Calculate",
+  hour_h:"Cost of an Hour", hour_d:"Your expected hourly cost: hands/hour × average bet × edge.",
+  hands_hr:"Hands / hour", avg_bet:"Average bet $", hour_run:"Estimate", hour_cost:"Expected hourly cost",
+  v_classic:"Classic (3:2, S17)", v_sixfive:"6:5 Blackjack", v_european:"European (no hole card)",
+  v_spanish21:"Spanish 21", v_switch:"Blackjack Switch", v_freebet:"Free Bet Blackjack",
+});
+Object.assign(I18N.zh,{
+  calc_title:"計算機",
+  var_h:"玩法優勢", var_d:"選六種玩法之一，看它的莊家優勢與背後規則。",
+  variant:"玩法", edge:"莊家優勢",
+  cust_h:"自訂規則優勢", cust_d:"自己組一張桌：計算機從 ~0.40% 基準（6 副、S17、3:2、DAS、晚投降）開始，每條規則變化逐項加上去。",
+  decks:"副數", s17:"莊家軟 17 停牌", bjpay:"Blackjack 賠付",
+  das:"允許分牌後雙倍", surr:"提供晚投降", dbl:"雙倍範圍",
+  dbl_any:"任意兩張", dbl_1011:"僅 10–11", dbl_911:"僅 9–11",
+  rsa:"允許重分 A", calc:"計算",
+  hour_h:"每小時代價", hour_d:"你的預期每小時花費：每小時手數 × 平均注 × 優勢。",
+  hands_hr:"每小時手數", avg_bet:"平均注 $", hour_run:"估算", hour_cost:"預期每小時花費",
+  v_classic:"經典版 (3:2, S17)", v_sixfive:"6:5 二十一點", v_european:"歐式（無暗牌）",
+  v_spanish21:"Spanish 21", v_switch:"Blackjack Switch", v_freebet:"Free Bet Blackjack",
+});
+function pickV(o){ return (LANG==='zh'?o.zh:o.en)||o.en; }
+function runVariant(){
+  const vk=document.getElementById('v_pick').value;
+  const v=VARIANTS[vk];
+  const rules={
+    classic:{en:"6 decks · S17 · BJ 3:2 · DAS · late surrender · peek", zh:"6 副 · S17 · BJ 3:2 · DAS · 晚投降 · 先看牌"},
+    sixfive:{en:"6 decks · S17 · BJ 6:5 · DAS · late surrender · peek", zh:"6 副 · S17 · BJ 6:5 · DAS · 晚投降 · 先看牌"},
+    european:{en:"6 decks · S17 · BJ 3:2 · DAS · NO hole card (lose all on dealer BJ)", zh:"6 副 · S17 · BJ 3:2 · DAS · 無暗牌（莊家 BJ 通吃）"},
+    spanish21:{en:"6×48 Spanish decks · H17 · player 21 always wins · bonuses · re-double", zh:"6×48 西班牙牌 · H17 · 玩家 21 必贏 · 紅利 · 再雙倍"},
+    switch:{en:"6 decks · S17 · two hands + switch · dealer pushes 22 · BJ 1:1", zh:"6 副 · S17 · 兩手+換牌 · 莊家 22 平手 · BJ 1:1"},
+    freebet:{en:"6 decks · S17 · free doubles 9–11 + free splits · dealer pushes 22 · BJ 3:2", zh:"6 副 · S17 · 免費雙倍 9–11+免費分牌 · 莊家 22 平手 · BJ 3:2"},
+  }[vk];
+  document.getElementById('v_out').innerHTML=`
+    <div class="stat-grid"><div class="stat"><div class="v neg">${(v.edge*100).toFixed(2)}%</div><div class="l">${t('edge')}</div></div></div>
+    <div class="kv"><span>${t('variant')}</span><b>${t('v_'+vk)}</b></div>
+    <div class="kv"><span>Rules</span><span class="muted" style="text-align:right">${pickV({en:rules.en,zh:rules.zh})}</span></div>
+    <div class="callout">${pickV(v.edgeNote)}</div>`;
+}
+function runCustom(){
+  let edge=0.004; // baseline
+  const d=+document.getElementById('c_decks').value;
+  if(d===1) edge-=0.0048; else if(d===2) edge-=0.0019; else if(d===8) edge+=0.0003;
+  if(!document.getElementById('c_s17').checked) edge+=0.0022; // H17
+  const bp=document.getElementById('c_bjpay').value;
+  if(bp==='65') edge+=0.0139; else if(bp==='11') edge+=0.027;
+  if(!document.getElementById('c_das').checked) edge+=0.0014;
+  if(!document.getElementById('c_surr').checked) edge+=0.0008;
+  const dbl=document.getElementById('c_dbl').value;
+  if(dbl==='1011') edge+=0.0018; else if(dbl==='911') edge+=0.0009;
+  if(!document.getElementById('c_rsa').checked) edge+=0.0008;
+  edge=Math.max(0,edge);
+  document.getElementById('c_out').innerHTML=`
+    <div class="stat-grid"><div class="stat"><div class="v neg">${(edge*100).toFixed(2)}%</div><div class="l">${t('edge')}</div></div></div>
+    <p class="muted">${LANG==='zh'?'基準 0.40%（6 副、S17、3:2、DAS、晚投降），各規則增減已套用。':'Baseline 0.40% (6 decks, S17, 3:2, DAS, late surrender); rule adjustments applied.'}</p>`;
+  return edge;
+}
+function runHour(){
+  const hands=+document.getElementById('h_hands').value||80;
+  const bet=+document.getElementById('h_bet').value||25;
+  const edge=runCustomSilent();
+  const cost=hands*bet*edge;
+  document.getElementById('h_out').innerHTML=`
+    <div class="stat"><div class="v neg">$${cost.toFixed(2)}</div><div class="l">${t('hour_cost')}</div></div>
+    <p class="muted">${hands} ${t('hands_hr')} × $${bet} × ${(edge*100).toFixed(2)}%</p>`;
+}
+function runCustomSilent(){
+  let edge=0.004;
+  const d=+document.getElementById('c_decks').value;
+  if(d===1) edge-=0.0048; else if(d===2) edge-=0.0019; else if(d===8) edge+=0.0003;
+  if(!document.getElementById('c_s17').checked) edge+=0.0022;
+  const bp=document.getElementById('c_bjpay').value;
+  if(bp==='65') edge+=0.0139; else if(bp==='11') edge+=0.027;
+  if(!document.getElementById('c_das').checked) edge+=0.0014;
+  if(!document.getElementById('c_surr').checked) edge+=0.0008;
+  const dbl=document.getElementById('c_dbl').value;
+  if(dbl==='1011') edge+=0.0018; else if(dbl==='911') edge+=0.0009;
+  if(!document.getElementById('c_rsa').checked) edge+=0.0008;
+  return Math.max(0,edge);
+}
+function onLangChange(){
+  const v=document.getElementById('v_pick');
+  if(v){ const cur=v.value; v.innerHTML=['classic','sixfive','european','spanish21','switch','freebet'].map(k=>`<option value="${k}">${t('v_'+k)}</option>`).join(''); v.value=cur||'classic'; }
+}
+</script>
+</head>
+<body>
+<script>document.write(navHTML('calculators.html'));</script>
+<div class="wrap"><section class="block">
+<h1 style="color:var(--gold)" data-i18n="calc_title">Calculators</h1>
+<div class="card">
+  <h2 class="sec" data-i18n="var_h">Variant Edge</h2>
+  <p data-i18n="var_d"></p>
+  <div class="rowflex">
+    <label class="f"><span data-i18n="variant">Variant</span><br><select id="v_pick"></select></label>
+    <button class="btn" onclick="runVariant()" data-i18n="calc">Calculate</button>
+  </div>
+  <div id="v_out" class="mt"></div>
+</div>
+<div class="card">
+  <h2 class="sec" data-i18n="cust_h">Custom Rules Edge</h2>
+  <p data-i18n="cust_d"></p>
+  <div class="rowflex">
+    <label class="f"><span data-i18n="decks">Decks</span><br><select id="c_decks"><option>1</option><option>2</option><option selected>6</option><option>8</option></select></label>
+    <label class="f"><span data-i18n="bjpay">Blackjack pays</span><br><select id="c_bjpay"><option value="32">3:2</option><option value="65">6:5</option><option value="11">1:1</option></select></label>
+    <label class="f"><span data-i18n="dbl">Double on</span><br><select id="c_dbl"><option value="any" data-i18n="dbl_any">Any two cards</option><option value="911" data-i18n="dbl_911">9–11 only</option><option value="1011" data-i18n="dbl_1011">10–11 only</option></select></label>
+  </div>
+  <div class="checkrow"><input type="checkbox" id="c_s17" checked><label for="c_s17" data-i18n="s17">Dealer stands on soft 17</label></div>
+  <div class="checkrow"><input type="checkbox" id="c_das" checked><label for="c_das" data-i18n="das">Double after split allowed</label></div>
+  <div class="checkrow"><input type="checkbox" id="c_surr" checked><label for="c_surr" data-i18n="surr">Late surrender offered</label></div>
+  <div class="checkrow"><input type="checkbox" id="c_rsa" checked><label for="c_rsa" data-i18n="rsa">Resplit aces allowed</label></div>
+  <div class="mt"><button class="btn" onclick="runCustom()" data-i18n="calc">Calculate</button></div>
+  <div id="c_out" class="mt"></div>
+</div>
+<div class="card">
+  <h2 class="sec" data-i18n="hour_h">Cost of an Hour</h2>
+  <p data-i18n="hour_d"></p>
+  <div class="rowflex">
+    <label class="f"><span data-i18n="hands_hr">Hands / hour</span><br><input type="number" id="h_hands" value="80" style="width:100px"></label>
+    <label class="f"><span data-i18n="avg_bet">Average bet $</span><br><input type="number" id="h_bet" value="25" style="width:100px"></label>
+    <button class="btn small" onclick="runHour()" data-i18n="hour_run">Estimate</button>
+  </div>
+  <div id="h_out" class="mt"></div>
+</div>
+<script>document.write(disclosure());</script>
+</section></div>
+<script>document.write(adSlot());</script>
+<script>document.write(footerHTML());</script>
+<script>onLangChange();</script>
+</body>
+</html>

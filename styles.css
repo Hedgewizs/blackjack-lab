@@ -1,0 +1,132 @@
+/* Blackjack Lab — green felt theme, mobile-first. Adapted from the Labs family conventions. */
+:root{
+  --felt:#0e2a1a; --felt-dark:#081a10; --felt-light:#143522;
+  --gold:#d4af37; --gold-dim:#a8872c;
+  --cream:#f5f0e1; --cream-dim:#cfc9b4;
+  --red:#c0392b; --red-bright:#e05252; --green:#1e7a46; --green-bright:#2ea862; --blue:#5aa9e6;
+  --card:#101a12; --line:#2a3d2e;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--felt-dark); color:var(--cream);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang TC","Microsoft JhengHei",sans-serif;
+  line-height:1.6;
+}
+a{color:var(--gold)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+/* ---------- header / nav ---------- */
+header.site{position:sticky;top:0;z-index:50;background:rgba(8,26,16,.96);border-bottom:2px solid var(--gold-dim);backdrop-filter:blur(4px)}
+.nav{display:flex;align-items:center;gap:8px;padding:10px 16px;max-width:1120px;margin:0 auto;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.25rem;color:var(--gold);text-decoration:none;margin-right:auto;white-space:nowrap}
+.brand small{color:var(--cream-dim);font-weight:400;font-size:.8rem}
+.nav a.nl{color:var(--cream);text-decoration:none;padding:6px 10px;border-radius:8px;font-size:.92rem;white-space:nowrap}
+.nav a.nl:hover,.nav a.nl.active{background:var(--felt-light);color:var(--gold)}
+.langbtn{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:999px;padding:6px 14px;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.langbtn:hover{background:var(--gold);color:#1a1a1a}
+/* ---------- hero ---------- */
+.hero{background:radial-gradient(ellipse at 50% 0%,#123a20,#081a10 75%);text-align:center;padding:56px 16px 40px;border-bottom:1px solid var(--line)}
+.hero h1{margin:0 0 8px;font-size:2.4rem;color:var(--gold);letter-spacing:.5px}
+.hero p.sub{color:var(--cream-dim);max-width:640px;margin:0 auto 20px;font-size:1.05rem}
+.btn{display:inline-block;background:var(--gold);color:#1a1a1a;font-weight:700;border:none;border-radius:10px;padding:12px 26px;font-size:1rem;cursor:pointer;text-decoration:none;margin:4px}
+.btn:hover{background:#e8c34a}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--gold);border:2px solid var(--gold-dim)}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn.danger{background:var(--red-bright);color:#fff}
+.btn.small{padding:8px 16px;font-size:.9rem}
+/* ---------- blackjack table ---------- */
+.bjtable{background:radial-gradient(ellipse at 50% 30%,#14603a,#0b3520 70%);border:3px solid #6b4f1d;border-radius:18px;padding:18px;margin:16px 0;user-select:none}
+.hand-area{margin:12px 0;text-align:center}
+.hand-label{font-size:.85rem;color:var(--cream-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.hand-total{display:inline-block;background:rgba(0,0,0,.45);border:1px solid var(--gold-dim);color:var(--gold);border-radius:999px;padding:2px 14px;font-weight:800;margin-left:8px}
+.cards{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:96px;align-items:center}
+.pcard{width:64px;height:92px;border-radius:8px;background:#fdfbf4;color:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;box-shadow:0 3px 8px rgba(0,0,0,.5);position:relative;animation:deal .25s}
+.pcard.red{color:#b03a2e}
+.pcard .rk{font-size:1.35rem;line-height:1}
+.pcard .st{font-size:1.5rem;line-height:1}
+.pcard.back{background:linear-gradient(135deg,#7a1f1a,#4a120e);border:2px solid var(--gold-dim)}
+@keyframes deal{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+.handzone{border:2px dashed transparent;border-radius:12px;padding:8px;margin:6px 0}
+.handzone.active{border-color:var(--gold)}
+.handzone.done{opacity:.75}
+.chiprack{display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.pchip{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;border:3px dashed rgba(255,255,255,.5);color:#fff;font-size:.8rem}
+.pchip.sel{outline:3px solid var(--gold);outline-offset:3px}
+.actionbar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.actionbar .btn{min-width:104px}
+/* ---------- trainer ---------- */
+.trainercard{font-size:4rem;text-align:center;padding:28px 0}
+.bigcount{font-size:3.2rem;font-weight:800;color:var(--gold);text-align:center}
+.speedbtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+/* ---------- cards / sections ---------- */
+section.block{padding:32px 0}
+h2.sec{color:var(--gold);border-bottom:2px solid var(--line);padding-bottom:8px;margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:14px 0}
+.grid{display:grid;gap:14px}
+@media(min-width:720px){.grid.cols2{grid-template-columns:1fr 1fr}.grid.cols3{grid-template-columns:1fr 1fr 1fr}}
+.kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);gap:12px}
+.kv:last-child{border-bottom:none}
+.kv b{color:var(--gold)}
+.pos{color:var(--green-bright)} .neg{color:var(--red-bright)}
+.pill{display:inline-block;background:var(--felt-light);border:1px solid var(--gold-dim);color:var(--gold);border-radius:999px;padding:2px 12px;font-size:.8rem;margin:2px}
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+.tab{background:var(--card);border:1px solid var(--line);color:var(--cream);border-radius:10px;padding:10px 16px;cursor:pointer;font-size:.95rem}
+.tab:hover{border-color:var(--gold)}
+.tab.active{background:var(--gold);color:#1a1a1a;font-weight:700;border-color:var(--gold)}
+.tabpane{display:none}
+.tabpane.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* ---------- tables ---------- */
+table.data{width:100%;border-collapse:collapse;font-size:.92rem;margin:12px 0}
+table.data th,table.data td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+table.data th{color:var(--gold);font-weight:700;background:rgba(212,175,55,.06)}
+table.data tr:hover td{background:rgba(212,175,55,.04)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+/* ---------- forms ---------- */
+label.f{display:block;margin:10px 0 4px;color:var(--cream-dim);font-size:.9rem}
+input[type=text],input[type=number],select{background:#101a12;border:1px solid var(--line);color:var(--cream);border-radius:8px;padding:10px 12px;font-size:1rem;width:100%;max-width:320px}
+input:focus,select:focus{outline:2px solid var(--gold-dim)}
+.rowflex{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.checkrow{display:flex;align-items:center;gap:8px;margin:8px 0}
+.checkrow input{width:auto;accent-color:var(--gold)}
+/* ---------- log ---------- */
+.log{background:#060d08;border:1px solid var(--line);border-radius:8px;padding:12px;height:180px;overflow-y:auto;font-family:ui-monospace,monospace;font-size:.82rem}
+.log div{padding:2px 0;border-bottom:1px dotted #223}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.stat{background:#060d08;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.stat .v{font-size:1.5rem;font-weight:800;color:var(--gold)}
+.stat .l{font-size:.78rem;color:var(--cream-dim)}
+/* ---------- ad slots ---------- */
+.ad-slot{margin:22px auto;max-width:728px;min-height:90px;border:1px dashed #4a5a52;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7a72;font-size:.75rem;letter-spacing:2px;background:rgba(255,255,255,.02)}
+.ad-note{font-size:.78rem;color:#8a968f;text-align:center;max-width:640px;margin:0 auto 8px}
+/* ---------- house ad: bottom banner, high-visibility ---------- */
+.house-ad{margin:36px auto 8px;max-width:728px;border-radius:10px;background:linear-gradient(135deg,#f5b942,#e8930c);color:#1a1206;padding:22px 26px;text-align:center;box-shadow:0 4px 24px rgba(232,147,12,.25)}
+.house-ad-label{display:block;font-size:.72rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;opacity:.7;margin-bottom:8px}
+.house-ad-link{display:inline-block;font-size:1.12rem;font-weight:800;color:#1a1206;text-decoration:none;border-bottom:2px solid rgba(26,18,6,.4);letter-spacing:normal}
+.house-ad-link:hover{border-bottom-color:#1a1206}
+/* ---------- misc ---------- */
+footer.site{border-top:2px solid var(--gold-dim);margin-top:40px;padding:24px 16px;text-align:center;color:var(--cream-dim);font-size:.85rem}
+.disclosure{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.35);border-radius:10px;padding:14px 18px;font-size:.88rem;margin:18px 0}
+.callout{background:rgba(212,175,55,.08);border-left:4px solid var(--gold);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.warnbox{background:rgba(224,82,82,.08);border-left:4px solid var(--red-bright);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:10px 0}
+summary{cursor:pointer;font-weight:700;color:var(--gold)}
+.quiz-opt{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);color:var(--cream);border-radius:10px;padding:12px;margin:8px 0;cursor:pointer;font-size:1rem}
+.quiz-opt:hover{border-color:var(--gold)}
+.quiz-opt.right{border-color:var(--green);background:rgba(76,175,125,.12)}
+.quiz-opt.wrong{border-color:var(--red-bright);background:rgba(224,82,82,.12)}
+.big{font-size:1.15rem}
+.center{text-align:center}
+.muted{color:var(--cream-dim)}
+.mt{margin-top:18px}
+.stratgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px;font-size:.8rem;margin:10px 0}
+.stratgrid .h{background:var(--gold);color:#1a1a1a;font-weight:800;border-radius:6px;padding:6px 2px;text-align:center}
+.stratgrid .c{background:var(--felt-light);border:1px solid var(--line);border-radius:6px;padding:6px 2px;text-align:center;font-weight:700}
+.stratgrid .c.H{background:#2e7d32;color:#fff}
+.stratgrid .c.S{background:#b03a2e;color:#fff}
+.stratgrid .c.D{background:#1a5fa8;color:#fff}
+.stratgrid .c.P{background:#7a5c1e;color:#fff}
+@media(max-width:560px){.hero h1{font-size:1.8rem}.pcard{width:52px;height:76px}}

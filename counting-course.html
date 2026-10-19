@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackjack Lab — Card Counting Course & Trainer</title>
+<meta name="description" content="Full card counting course: Hi-Lo, KO, Omega II systems, bet sizing done right, Kelly criterion, risk of ruin, plus a trainer with timed drills. Bilingual.">
+<link rel="stylesheet" href="styles.css">
+<script src="i18n.js"></script>
+<script>
+Object.assign(I18N.en,{
+  cc_title:"Card Counting Course", cc_intro:"The honest, complete version: how counting works, every major system, how to size bets the right way — and a trainer to drill it. Counting is legal. Casinos can still bar you. Both facts live here.",
+  tab_why:"Why it works", tab_systems:"Counting systems", tab_betsize:"Bet sizing done right", tab_session:"Session play", tab_trainer:"Trainer",
+  glossary_h:"Glossary", mathbox_h:"The math", verdict_h:"The verdict",
+});
+Object.assign(I18N.zh,{
+  cc_title:"算牌課程", cc_intro:"誠實完整版：算牌原理、主流系統、正確的注碼方法——外加訓練器。算牌合法，但賭場照樣可以請你走。兩個事實都在這裡。",
+  tab_why:"原理", tab_systems:"算牌系統", tab_betsize:"正確注碼", tab_session:"實戰", tab_trainer:"訓練器",
+  glossary_h:"術語表", mathbox_h:"數學", verdict_h:"結論",
+});
+let ccTab='why';
+function pickLang(o){ return (LANG==='zh'?o.zh:o.en)||o.en; }
+function renderCC(){
+  const tabs=document.getElementById('cctabs'), pane=document.getElementById('ccpane');
+  const T=[['why','tab_why','🧮'],['systems','tab_systems','📊'],['betsize','tab_betsize','💰'],['session','tab_session','🎰'],['trainer','tab_trainer','🎯']];
+  tabs.innerHTML=T.map(([id,k,ic])=>`<button class="tab${ccTab===id?' active':''}" onclick="ccTab='${id}';renderCC()">${ic} ${t(k)}</button>`).join('');
+  const C=COURSE.find(x=>x.id===ccTab);
+  if(ccTab==='trainer'){ pane.innerHTML=`<h2 class="sec">🎯 ${pickLang(C.title)}</h2><p class="big">${pickLang(C.intro)}</p><div id="trainerUI"></div>`; buildTrainer(); }
+  else{
+    pane.innerHTML=`<h2 class="sec">${pickLang(C.title)}</h2><p class="big">${pickLang(C.intro)}</p>
+    ${C.sections.map(s=>`<div class="card"><h3 style="color:var(--gold);margin-top:0">${pickLang(s.h)}</h3>${pickLang(s.body)}</div>`).join('')}
+    <div class="card"><h3 style="color:var(--gold);margin-top:0">🧮 ${t('mathbox_h')}</h3>${pickLang(C.mathBox)}</div>
+    <div class="callout"><b>✅ ${t('verdict_h')}:</b> ${pickLang(C.verdict)}</div>`;
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function onLangChange(){ renderCC(); }
+</script>
+<script src="counting-content.js"></script>
+</head>
+<body>
+<script>document.write(navHTML('counting-course.html'));</script>
+<div class="wrap">
+<section class="block">
+<h1 style="color:var(--gold)" data-i18n="cc_title">Card Counting Course</h1>
+<p data-i18n="cc_intro"></p>
+<div class="warnbox"><b>⚖️ Legal, but not welcome:</b> <span id="legalNote"></span></div>
+<div class="tabs" id="cctabs"></div>
+<div id="ccpane"></div>
+<script>document.write(disclosure());</script>
+</section>
+</div>
+<script>document.write(adSlot());</script>
+<script>document.write(footerHTML());</script>
+<script>
+document.getElementById('legalNote').textContent = LANG==='zh'
+ ? "算牌是合法的（你只是在用腦子記牌，沒有作弊）。但賭場是私人場所，有權拒絕任何人上桌——包括懷疑算牌的玩家。本課程教你技術，也教你面對現實。"
+ : "Counting cards is legal (you're just using your brain — no cheating device, no marked cards). But casinos are private property and can refuse service to anyone, including suspected counters. This course teaches the skill and the reality.";
+renderCC();
+</script>
+<script src="counting-trainer.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackjack Lab — Gear & Merch</title>
+<meta name="description" content="The card counting books worth reading and practice gear I actually recommend. Plus Blackjack Lab merch.">
+<link rel="stylesheet" href="styles.css">
+<script src="i18n.js"></script>
+<script>
+/* ---------- Amazon Associates ---------- */
+const AMAZON_TAG = "hedgewiz00-20";
+const amz = q => "https://www.amazon.com/s?k="+encodeURIComponent(q)+"&tag="+AMAZON_TAG;
+const GEAR = [
+  {icon:"📖", q:"Beat the Dealer Edward Thorp",
+   name:{en:"Beat the Dealer — Edward O. Thorp", zh:"《Beat the Dealer》— Edward O. Thorp"},
+   d:{en:"The book that started it all. Thorp proved card counting worked in 1962 — with math, not stories. Read it for history and for the original Ten-Count system.",
+      zh:"開山之作。Thorp 在 1962 年用數學（不是故事）證明算牌可行。為歷史和原始 Ten-Count 系統而讀。"}},
+  {icon:"📖", q:"Blackjack Attack Don Schlesinger",
+   name:{en:"Blackjack Attack — Don Schlesinger", zh:"《Blackjack Attack》— Don Schlesinger"},
+   d:{en:"The professional's reference: risk of ruin, optimal betting, SCORE, and every number that matters. Dense, but this is the math behind the bet-sizing chapter of this site.",
+      zh:"職業玩家聖經：破產風險、最優注碼、SCORE、所有重要數字。硬，但本站注碼章節的數學都從這裡來。"}},
+  {icon:"📖", q:"Professional Blackjack Stanford Wong",
+   name:{en:"Professional Blackjack — Stanford Wong", zh:"《Professional Blackjack》— Stanford Wong"},
+   d:{en:"Wonging is named after this man. The complete guide to Hi-Lo, back-counting, and team play — practical, field-tested, still relevant.",
+      zh:"Wonging 就是以他命名。Hi-Lo、跳桌、團隊作戰的完整指南——實戰、經實地驗證、至今仍然有用。"}},
+  {icon:"📖", q:"Theory of Gambling and Statistical Logic Epstein",
+   name:{en:"The Theory of Gambling and Statistical Logic — Richard Epstein", zh:"《賭博理論與統計邏輯》— Richard Epstein"},
+   d:{en:"The textbook. Probability theory built around casino games, blackjack included. The foundation under everything on this site.",
+      zh:"教科書級。以賭場遊戲（含二十一點）為骨架的機率論。本站所有內容的地基。"}},
+  {icon:"🃏", q:"copag playing cards blackjack",
+   name:{en:"Copag plastic playing cards", zh:"Copag 塑膠撲克牌"},
+   d:{en:"Casino-grade plastic cards for home drills. Counting practice needs real cards at real speed — apps don't build the same reflexes.",
+      zh:"賭場級塑膠牌，在家練習用。算牌練習需要真牌、真速度——app 練不出同樣的反射。"}},
+  {icon:"🟢", q:"blackjack table felt layout",
+   name:{en:"Blackjack table felt layout", zh:"二十一點桌布"},
+   d:{en:"Full-size felt with betting circles and insurance line. Practice bet placement and chip handling before your first live table.",
+      zh:"全尺寸桌布，含投注圈和保險線。上真桌之前先練好放注和籌碼手感。"}},
+];
+/* ---------- Printify merch (designs come later) ----------
+   Fill MERCH_PRODUCTS when designs are ready. Format per item:
+   {name:{en:"Blackjack Lab Tee", zh:"Blackjack Lab T 恤"}, price:"$24.99",
+    img:"https://…/design.jpg", url:"https://hedgewiz.printify.me/product/…"} */
+const MERCH_PRODUCTS = [];
+
+Object.assign(I18N.en,{
+  gear_title:"Gear & Merch",
+  gear_intro:"The books and practice gear I actually recommend, and Blackjack Lab merch when it lands. No casino or sportsbook affiliates here — licensing risk I don't need.",
+  gear_h:"Books & practice gear",
+  gear_d:"Hand-picked. Every item below is something I'd tell a friend to buy — honest math, real practice tools.",
+  gear_cta:"Check price on Amazon",
+  amz_disc:"As an Amazon Associate, Blackjack Lab earns from qualifying purchases. Prices change — the link always shows the live price.",
+  merch_h:"Blackjack Lab merch",
+  merch_d:"Branded tees and felt swag, printed on demand. Designs are in the works — check back soon.",
+  merch_soon:"Designs coming soon",
+  merch_notify:"Want first dibs? The announcement will go out with the next site update.",
+});
+Object.assign(I18N.zh,{
+  gear_title:"裝備與周邊",
+  gear_intro:"我真心推薦的書與練習裝備，以及即將推出的 Blackjack Lab 周邊。這裡沒有賭場或博彩公司聯盟行銷——牌照風險我不需要。",
+  gear_h:"書籍與練習裝備",
+  gear_d:"精挑細選。下面每樣都是我會推薦朋友買的——誠實的數學、真實的練習工具。",
+  gear_cta:"去 Amazon 看價格",
+  amz_disc:"身為 Amazon 合作夥伴，Blackjack Lab 從合格購買中賺取佣金。價格會變動——連結永遠顯示即時價格。",
+  merch_h:"Blackjack Lab 周邊",
+  merch_d:"品牌 T 恤與桌布小物，按需印製。設計製作中——敬請期待。",
+  merch_soon:"設計即將推出",
+  merch_notify:"想搶先入手？會在下次網站更新時一併公告。",
+});
+function pick(o){ return (LANG==='zh'?o.zh:o.en)||o.en; }
+function renderGear(){
+  document.getElementById('geargrid').innerHTML = GEAR.map(g=>`
+    <div class="card"><div style="font-size:2.2rem">${g.icon}</div>
+      <h3 style="color:var(--gold);margin:8px 0">${pick(g.name)}</h3>
+      <p class="muted">${pick(g.d)}</p>
+      <a class="btn small" href="${amz(g.q)}" target="_blank" rel="nofollow sponsored noopener">${t('gear_cta')} →</a>
+    </div>`).join('');
+  const m = document.getElementById('merchgrid');
+  if(!MERCH_PRODUCTS.length){
+    m.innerHTML = [1,2,3].map(()=>`
+      <div class="card" style="border-style:dashed;text-align:center;opacity:.75">
+        <div style="font-size:2.2rem">👕</div>
+        <h3 style="color:var(--gold)">${t('merch_soon')}</h3>
+        <p class="muted">${t('merch_notify')}</p>
+      </div>`).join('');
+  } else {
+    m.innerHTML = MERCH_PRODUCTS.map(p=>`
+      <div class="card"><img src="${p.img}" alt="" style="width:100%;border-radius:8px">
+        <h3 style="color:var(--gold);margin:8px 0">${pick(p.name)}</h3>
+        <div class="kv"><span>Price</span><b>${p.price}</b></div>
+        <a class="btn small" href="${p.url}" target="_blank" rel="noopener">Buy →</a>
+      </div>`).join('');
+  }
+}
+function onLangChange(){ renderGear(); }
+</script>
+</head>
+<body>
+<script>document.write(navHTML('gear.html'));</script>
+<div class="wrap"><section class="block">
+<h1 style="color:var(--gold)" data-i18n="gear_title">Gear & Merch</h1>
+<p data-i18n="gear_intro"></p>
+<h2 class="sec">🛒 <span data-i18n="gear_h">Books & practice gear</span></h2>
+<p class="muted" data-i18n="gear_d"></p>
+<div class="grid cols3" id="geargrid"></div>
+<p class="ad-note" data-i18n="amz_disc"></p>
+
+<h2 class="sec mt">👕 <span data-i18n="merch_h">Blackjack Lab merch</span></h2>
+<p class="muted" data-i18n="merch_d"></p>
+<div class="grid cols3" id="merchgrid"></div>
+
+<script>document.write(disclosure());</script>
+</section></div>
+<script>document.write(adSlot());</script>
+<script>document.write(footerHTML());</script>
+<script>renderGear();</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — Blackjack Lab</title>
+<link rel="stylesheet" href="styles.css">
+<script src="i18n.js"></script>
+</head>
+<body>
+<script>document.write(navHTML('about.html'));</script>
+<div class="wrap">
+  <section class="block">
+    <h2 class="sec">About Blackjack Lab</h2>
+    <div id="aboutBody"></div>
+    <script>document.write(disclosure());</script>
+  </section>
+</div>
+<script>document.write(adSlot());</script>
+<script>document.write(footerHTML());</script>
+<script>
+const ABOUT = {
+en:`<div class="card"><p class="big">Blackjack is the only game in the casino where the math can flip in your favor — and I wanted a place that treats that fact with the respect it deserves.</p>
+<p>I built Blackjack Lab because most blackjack content falls into two camps: casino brochures that pretend 6:5 is fine, and counting forums that make it sound easy. Neither is honest. This site is the third thing: the actual rules, the actual edges, the actual work required to count cards — including the part where the casino shows you the door.</p>
+<p><b>What this site is:</b> a free educational lab. A rules-correct simulator with six game variants, basic strategy taught properly, a full card counting course with a real trainer, and calculators that price every rule variation honestly.</p>
+<p><b>What this site is not:</b> a shortcut. Card counting is a part-time job disguised as a game. It takes months of practice, a serious bankroll, and the temperament to get backed off politely and come back tomorrow. If anyone tells you it's easy money, they're selling something.</p>
+<p>My one strong opinion: never sit at a 6:5 table when a 3:2 table exists in the building. Same game, triple the price on your best hands. That's not strategy, that's shopping — and now you know.</p></div>`,
+zh:`<div class="card"><p class="big">二十一點是賭場裡唯一數學可能翻轉對你有利的遊戲——我想要一個認真對待這個事實的地方。</p>
+<p>我做 Blackjack Lab，是因為多數二十一點內容分兩派：賭場文宣假裝 6:5 沒問題，算牌論壇又把它講得很容易。兩邊都不誠實。這個網站是第三種：真實規則、真實優勢、算牌真正需要下的功夫——包括賭場請你走人那一段。</p>
+<p><b>本站是：</b>免費教育實驗室。規則正確的模擬器（含六種玩法）、好好教的基本策略、完整的算牌課程加真實訓練器，以及誠實標價每條規則差異的計算機。</p>
+<p><b>本站不是：</b>捷徑。算牌是偽裝成遊戲的兼職工作。要幾個月練習、像樣的賭本，還要有被禮貌請出去之後、明天照樣回來的心態。跟你說這是輕鬆錢的，都是在賣東西。</p>
+<p>我唯一強烈的意見：同一棟樓有 3:2 的桌，就永遠別坐 6:5。同樣的遊戲，你最好的牌貴三倍。這不是策略，是比價——現在你知道了。</p></div>`};
+function renderDynamic(){ document.getElementById('aboutBody').innerHTML = ABOUT[LANG]; }
+</script>
+</body>
+</html>

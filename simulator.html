@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackjack Lab — Simulator (6 Variants)</title>
+<meta name="description" content="Interactive blackjack simulator: 6 game variants, correct rules, hit/stand/double/split/surrender. Free, bilingual.">
+<link rel="stylesheet" href="styles.css">
+<script src="i18n.js"></script>
+<script src="blackjack-engine.js"></script>
+<script src="sidebets.js"></script>
+<script>
+Object.assign(I18N.en,{
+  sim_title:"Blackjack Simulator", sim_intro:"Six real variants, rules-correct engine. Pick a game, place your bet, play it like the casino deals it.",
+  variant:"Game variant", bet:"Bet $", deal:"DEAL",
+  hit:"Hit", stand:"Stand", double:"Double", split:"Split", surrender:"Surrender", redouble:"Re-double",
+  switch_cards:"🔀 Switch 2nd cards", keep:"Keep as dealt",
+  dealer:"Dealer", you:"You", hand:"Hand",
+  your_bets:"Results", no_bets:"Place a bet and deal.",
+  new_session:"New session", edge_is:"House edge",
+  hands:"hands", pl:"P&L", win_rate:"win rate",
+  sidebets:"Side bets", sidebet_note:"Optional — settled on the deal (Buster settles after dealer plays).",
+  insurance_q:"Dealer shows Ace — take insurance?",
+  take_ins:"Take insurance", no_ins:"No insurance",
+  ins_win:"Insurance wins", ins_lose:"Insurance loses",
+  v_classic:"Classic (3:2, S17)", v_sixfive:"6:5 Blackjack", v_european:"European (no hole card)",
+  v_spanish21:"Spanish 21", v_switch:"Blackjack Switch", v_freebet:"Free Bet Blackjack",
+  strat_note:"Strategy note",
+});
+Object.assign(I18N.zh,{
+  sim_title:"二十一點模擬器", sim_intro:"六種真實玩法，規則正確的引擎。選遊戲、下注，像賭場一樣打。",
+  variant:"遊戲玩法", bet:"注金 $", deal:"發牌",
+  hit:"要牌", stand:"停牌", double:"雙倍", split:"分牌", surrender:"投降", redouble:"再雙倍",
+  switch_cards:"🔀 交換第二張牌", keep:"保持原樣",
+  dealer:"莊家", you:"你", hand:"手",
+  your_bets:"結果", no_bets:"下注後發牌。",
+  new_session:"新 session", edge_is:"莊家優勢",
+  hands:"局數", pl:"損益", win_rate:"勝率",
+  sidebets:"邊注", sidebet_note:"選配——發牌時結算（Buster 等莊家打完結算）。",
+  insurance_q:"莊家明牌 A——買保險嗎？",
+  take_ins:"買保險", no_ins:"不買",
+  ins_win:"保險贏", ins_lose:"保險輸",
+  v_classic:"經典版 (3:2, S17)", v_sixfive:"6:5 二十一點", v_european:"歐式（無暗牌）",
+  v_spanish21:"Spanish 21", v_switch:"Blackjack Switch", v_freebet:"Free Bet Blackjack",
+  strat_note:"策略提示",
+});
+const STRAT_NOTES = {
+  classic:{en:"Standard basic strategy (see Guide). The baseline — everything applies exactly.", zh:"標準基本策略（見指南）。基準——全部適用。"},
+  sixfive:{en:"Same chart as classic — which is the trap. It feels identical but costs 1.39% more. The price is in the payout, not the decisions.", zh:"跟經典版同一張表——這就是陷阱。感覺一樣，但貴 1.39%。價格藏在賠付裡，不在決策裡。"},
+  european:{en:"No-peek: be less aggressive vs dealer 10/A. Don't double 11 vs 10, don't split 8s vs 10/A — extra money dies when dealer has blackjack.", zh:"無先看：對莊家 10/A 保守一點。11 對 10 不雙倍、8 對 10/A 不分牌——莊家有 blackjack 時多投的錢直接沒了。"},
+  spanish21:{en:"Different chart! Double and hit much more aggressively — 21 can't lose and bonuses reward multi-card hands. Never use standard strategy here.", zh:"不同的表！雙倍和要牌積極得多——21 不會輸、紅利獎勵多張牌。千萬別用標準策略打。"},
+  switch:{en:"Switch to make 21s and avoid busts, then play near-standard. Never take insurance. Stand more vs dealer 22 threat.", zh:"換出 21、避開爆牌，然後接近標準打法。永遠不買保險。面對莊家 22 威脅多停牌。"},
+  freebet:{en:"ALWAYS take the free double/split — it's free money. Play MORE aggressively than standard. Push-22 is where the house gets paid.", zh:"免費雙倍/分牌永遠要——免費的錢。打得比標準版更激進。莊家靠 22 平手賺錢。"},
+};
+let eng=null, betAmt=10;
+function pickV(o){ return (LANG==='zh'?o.zh:o.en)||o.en; }
+function newSession(){
+  const vk=document.getElementById('variant').value;
+  eng=new BlackjackEngine(vk);
+  eng.setBankroll(+document.getElementById('s_bank').value||500);
+  betAmt=+document.getElementById('s_bet').value||10;
+  document.getElementById('log').innerHTML='';
+  renderAll();
+  log((LANG==='zh'?'新 session：':'New session: ')+t('v_'+vk));
+}
+function doDeal(){
+  if(!eng) return;
+  try{
+    const bets = eng.v.switch ? [betAmt,betAmt] : [betAmt];
+    // collect side bets
+    const sb={}; let sbTotal=0;
+    ['perfectPairs','twentyOnePlus3','royalMatch','luckyLadies','buster'].forEach(id=>{
+      const el=document.getElementById('sb_'+id);
+      const a=el?+el.value||0:0;
+      if(a>0){ sb[id]=a; sbTotal+=a; }
+    });
+    if(betAmt+sbTotal>eng.bankroll && !eng.v.switch) throw new Error('bankroll');
+    if(eng.v.switch && betAmt*2+sbTotal>eng.bankroll) throw new Error('bankroll');
+    eng.bankroll-=sbTotal;
+    eng.sideBets=sb;
+    eng.deal(bets);
+    eng.insuranceTaken=false; eng.insuranceAmt=0;
+    log('— '+t('deal')+' $'+(eng.v.switch?betAmt*2:betAmt)+(sbTotal?' + $'+sbTotal+' '+t('sidebets'):'')+' —');
+    // resolve on-deal side bets (deferred until after insurance if offered)
+    if(eng.phase!=='insurance'){
+      const res=resolveDealSideBets(eng);
+      res.forEach(r=>{
+        const nm=pickV(SIDEBETS[r.id].name);
+        if(r.win>0) log(`🎰 ${nm}: ${r.mult}:1 → +$${r.win}`);
+        else log(`🎰 ${nm}: — $${r.amt}`);
+      });
+    }
+    // resolve buster after dealer finishes (checked in renderAll)
+    eng.busterResolved=false;
+    renderAll();
+  }catch(e){ log('⚠️ bankroll too low'); }
+  renderAll();
+}
+function takeInsurance(yes){
+  if(!eng||eng.phase!=='insurance') return;
+  if(yes){
+    const amt=Math.min(betAmt/2, eng.bankroll);
+    eng.bankroll-=amt; eng.insuranceAmt=amt; eng.insuranceTaken=true;
+    log(t('take_ins')+' $'+amt);
+  } else log(t('no_ins'));
+  // resolve insurance against dealer hole card, then settle BJs
+  const dBJ=handValue(eng.dealerHand).blackjack;
+  if(eng.insuranceTaken){
+    if(dBJ){ eng.bankroll+=eng.insuranceAmt*3; log('🛡️ '+t('ins_win')+' +$'+(eng.insuranceAmt*2)); }
+    else log('🛡️ '+t('ins_lose')+' -$'+eng.insuranceAmt);
+  }
+  eng.resolveInsurance(yes, eng.insuranceAmt||0);
+  // resolve on-deal side bets now (after insurance)
+  const res=resolveDealSideBets(eng);
+  res.forEach(r=>{
+    const nm=pickV(SIDEBETS[r.id].name);
+    if(r.win>0) log(`🎰 ${nm}: ${r.mult}:1 → +$${r.win}`);
+    else log(`🎰 ${nm}: — $${r.amt}`);
+  });
+  renderAll();
+}
+function act(fn){ if(!eng||eng.phase!=='player') return; eng[fn](); renderAll(); }
+function cardHTML(c, faceDown){
+  if(faceDown) return `<div class="pcard back"></div>`;
+  const red = c.suit==='♥'||c.suit==='♦';
+  return `<div class="pcard${red?' red':''}"><div class="rk">${c.rank}</div><div class="st">${c.suit}</div></div>`;
+}
+function renderAll(){
+  if(!eng) return;
+  const vk=eng.variantKey;
+  // edge display
+  document.getElementById('edgebox').innerHTML =
+    `<div class="kv"><span>${t('edge_is')}</span><b class="neg">${(eng.v.edge*100).toFixed(2)}%</b></div>
+     <div class="muted" style="font-size:.85rem">${pickV(eng.v.edgeNote)}</div>
+     <div class="callout" style="margin-top:10px"><b>💡 ${t('strat_note')}:</b> ${pickV(STRAT_NOTES[vk])}</div>`;
+  // dealer
+  const dv=handValue(eng.dealerHand);
+  let dh=eng.dealerHand.map((c,i)=>{
+    const hide = !eng.v.holeCard && i===1 && eng.phase==='player';
+    return cardHTML(c, hide);
+  }).join('');
+  const showTotal = eng.v.holeCard || eng.phase!=='player';
+  document.getElementById('dealer').innerHTML =
+    `<div class="hand-label">${t('dealer')}${showTotal?`<span class="hand-total">${dv.total}</span>`:''}</div><div class="cards">${dh||'<span class="muted">—</span>'}</div>`;
+  // player hands
+  let ph='';
+  eng.playerHands.forEach((h,i)=>{
+    const v=handValue(h.cards);
+    const active = eng.phase==='player' && i===eng.activeHand;
+    let tag='';
+    if(h.result==='blackjack') tag=' <span class="pill">🂡 BLACKJACK</span>';
+    else if(h.result==='bust') tag=' <span class="pill">BUST</span>';
+    else if(h.result==='surrender') tag=' <span class="pill">SURRENDER</span>';
+    else if(h.result==='win') tag=' <span class="pill pos">WIN +$'+h.win+'</span>';
+    else if(h.result==='win21') tag=' <span class="pill pos">21 WIN +$'+h.win+'</span>';
+    else if(h.result==='lose') tag=' <span class="pill neg">LOSE</span>';
+    else if(h.result==='push') tag=' <span class="pill">PUSH</span>';
+    if(h.freeDouble) tag+=' <span class="pill">FREE DBL</span>';
+    if(h.freeSplit) tag+=' <span class="pill">FREE SPLIT</span>';
+    ph+=`<div class="handzone${active?' active':''}${h.done?' done':''}">
+      <div class="hand-label">${t('hand')} ${eng.playerHands.length>1?(i+1):''} · $${h.bet}${h.doubled?' (x2)':''}<span class="hand-total">${v.total}${v.soft&&!v.bust?' soft':''}</span>${tag}</div>
+      <div class="cards">${h.cards.map(c=>cardHTML(c)).join('')}</div></div>`;
+  });
+  document.getElementById('phands').innerHTML = ph||`<p class="muted center">${t('no_bets')}</p>`;
+  // actions
+  const ab=document.getElementById('actions');
+  if(eng.phase==='insurance'){
+    ab.innerHTML=`<div class="center" style="width:100%"><p class="big">🛡️ ${t('insurance_q')}</p>
+      <button class="btn" onclick="takeInsurance(true)">${t('take_ins')} ($${Math.min(betAmt/2,eng.bankroll).toFixed(0)})</button>
+      <button class="btn ghost" onclick="takeInsurance(false)">${t('no_ins')}</button></div>`;
+  } else if(eng.phase==='switch'){
+    ab.innerHTML=`<button class="btn" onclick="eng.doSwitch();renderAll()">${t('switch_cards')}</button>
+      <button class="btn ghost" onclick="eng.keepHands();renderAll()">${t('keep')}</button>`;
+  } else if(eng.phase==='player'){
+    const h=eng.currentHand();
+    ab.innerHTML=`
+      <button class="btn" onclick="act('playerHit')">${t('hit')}</button>
+      <button class="btn ghost" onclick="act('playerStand')">${t('stand')}</button>
+      <button class="btn" ${eng.canDouble(h)?'':'disabled'} onclick="act('playerDouble')">${t('double')}${h.freeDouble?'':' 💰'}</button>
+      <button class="btn" ${eng.canSplit(h)?'':'disabled'} onclick="act('playerSplit')">${t('split')}</button>
+      ${eng.v.surrender?`<button class="btn ghost" ${h.cards.length===2?'':'disabled'} onclick="act('playerSurrender')">${t('surrender')}</button>`:''}
+      ${vk==='spanish21'&&h.doubled&&!h.redoubled?`<button class="btn" onclick="act('playerRedouble')">${t('redouble')}</button>`:''}`;
+  } else {
+    ab.innerHTML=`<button class="btn" style="font-size:1.2rem;padding:14px 40px" onclick="doDeal()">${t('deal')}</button>`;
+  }
+  // buster side bet settles after dealer plays
+  if(eng.phase==='done' && !eng.busterResolved && eng.sideBets && eng.sideBets.buster>0){
+    eng.busterResolved=true;
+    const mult=sbBuster(eng.dealerHand);
+    const amt=eng.sideBets.buster;
+    if(mult>0){ eng.bankroll+=amt+amt*mult; log(`🎰 ${pickV(SIDEBETS.buster.name)}: ${mult}:1 → +$${amt*mult}`); }
+    else log(`🎰 ${pickV(SIDEBETS.buster.name)}: — $${amt}`);
+  }
+  // stats
+  const pl=eng.bankroll-eng.startBank;
+  const s=eng.stats;
+  document.getElementById('bank').innerHTML=
+    `<div class="stat"><div class="v">$${eng.bankroll.toFixed(0)}</div><div class="l">${t('bankroll')}</div></div>
+     <div class="stat"><div class="v ${pl>=0?'pos':'neg'}">${pl>=0?'+':''}$${pl.toFixed(0)}</div><div class="l">${t('pl')}</div></div>
+     <div class="stat"><div class="v">${s.hands}</div><div class="l">${t('hands')}</div></div>
+     <div class="stat"><div class="v">${s.hands?((s.won/s.hands*100).toFixed(0)+'%'):'–'}</div><div class="l">${t('win_rate')}</div></div>`;
+  // settle messages
+  if(eng.phase==='done'&&eng.message){
+    const m={dealer_bj:{en:'Dealer blackjack.',zh:'莊家 blackjack。'},player_bj:{en:'Player blackjack!',zh:'玩家 blackjack！'},settled:{en:'Hand settled.',zh:'結算完成。'}}[eng.message];
+    if(m && !renderAll._lastMsg || renderAll._lastMsg!==eng.message+eng.stats.hands){
+      renderAll._lastMsg=eng.message+eng.stats.hands;
+    }
+  }
+}
+function log(m){ const el=document.getElementById('log'); el.innerHTML='<div>'+m+'</div>'+el.innerHTML; }
+function buildSideBetPanel(){
+  const p=document.getElementById('sbpanel');
+  if(!p) return;
+  const keep={};
+  ['perfectPairs','twentyOnePlus3','royalMatch','luckyLadies','buster'].forEach(id=>{
+    const el=document.getElementById('sb_'+id);
+    if(el) keep[id]=el.value;
+  });
+  p.innerHTML=['perfectPairs','twentyOnePlus3','royalMatch','luckyLadies','buster'].map(id=>`
+    <label class="f" title="${pickV(SIDEBETS[id].pays)}">${pickV(SIDEBETS[id].name)} <span class="muted" style="font-size:.75rem">${(SIDEBETS[id].edge*100).toFixed(1)}%</span><br>
+    <input type="number" id="sb_${id}" value="${keep[id]||0}" min="0" style="width:80px"></label>`).join('');
+}
+function onLangChange(){
+  const v=document.getElementById('variant');
+  const cur=v.value;
+  v.innerHTML=['classic','sixfive','european','spanish21','switch','freebet'].map(k=>`<option value="${k}">${t('v_'+k)}</option>`).join('');
+  v.value=cur;
+  buildSideBetPanel();
+  if(eng) renderAll();
+}
+</script>
+</head>
+<body>
+<script>document.write(navHTML('simulator.html'));</script>
+<div class="wrap"><section class="block">
+<h1 style="color:var(--gold)" data-i18n="sim_title">Blackjack Simulator</h1>
+<p data-i18n="sim_intro"></p>
+<div class="card">
+  <div class="rowflex">
+    <label class="f"><span data-i18n="variant">Game variant</span><br><select id="variant" onchange="newSession()"></select></label>
+    <label class="f"><span data-i18n="bankroll">Bankroll</span><br><input type="number" id="s_bank" value="500" style="width:100px"></label>
+    <label class="f"><span data-i18n="bet">Bet $</span><br><input type="number" id="s_bet" value="10" style="width:90px"></label>
+    <button class="btn small" onclick="newSession()" data-i18n="new_session">New session</button>
+  </div>
+  <div id="edgebox" class="mt"></div>
+</div>
+<div class="card">
+  <h3 style="color:var(--gold);margin-top:0">🎰 <span data-i18n="sidebets">Side bets</span></h3>
+  <p class="muted" style="font-size:.85rem" data-i18n="sidebet_note"></p>
+  <div class="rowflex" id="sbpanel"></div>
+</div>
+<div class="bjtable">
+  <div class="hand-area" id="dealer"></div>
+  <div class="actionbar" id="actions"></div>
+  <div class="hand-area" id="phands"></div>
+</div>
+<div class="grid cols2">
+  <div class="card"><h3 style="color:var(--gold);margin-top:0">💰 <span data-i18n="bankroll">Bankroll</span></h3>
+    <div class="stat-grid" id="bank"></div>
+  </div>
+  <div class="card"><h3 style="color:var(--gold);margin-top:0">📝 <span data-i18n="your_bets">Results</span></h3><div class="log" id="log"></div></div>
+</div>
+<script>document.write(disclosure());</script>
+</section></div>
+<script>document.write(adSlot());</script>
+<script>document.write(footerHTML());</script>
+<script>onLangChange();buildSideBetPanel();newSession();</script>
+</body>
+</html>
