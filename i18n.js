@@ -20,7 +20,7 @@ en:{
   house_ad_text:"🎲 Labs hub — craps, baccarat & roulette",
   disclosure:"Blackjack Lab is a free educational simulator. No real money is wagered here. Card counting is not illegal, but casinos are private property and can bar players they believe are counting — the course explains this honestly.",
   footer_by:"Built for players who want the truth about the math.",
-  nl_title:"\U0001F4EC iamthecasino.com \u2014 the letter",
+  nl_title:"📬 iamthecasino.com — the letter",
   nl_desc:"Weekly: one options trade idea with the math, one casino truth, one comp-cruise deal. Free forever. Unsubscribe anytime.",
   footer_labs:"More from the Labs: ",
   start:"Start", stop:"Stop", reset:"Reset",
@@ -43,7 +43,7 @@ zh:{
   house_ad_text:"🎲 Labs 總覽——花旗骰、百家樂與輪盤",
   disclosure:"Blackjack Lab 是免費教育模擬器，不涉及真錢投注。算牌不違法，但賭場是私人場所，可以拒絕他們認為在算牌的玩家——課程會誠實說明這點。",
   footer_by:"為想看清數學真相的玩家而建。",
-  nl_title:"\U0001F4EC 成為莊家——電子報",
+  nl_title:"📬 成為莊家——電子報",
   nl_desc:"每週：一筆附數學的交易想法、一個賭場真相、一個郵輪優惠。永久免費，隨時退訂。",
   footer_labs:"Labs 系列：",
   start:"開始", stop:"停止", reset:"重設",
@@ -67,6 +67,16 @@ function adSlot(){
 function disclosure(){
   return `<div class="disclosure">⚠️ ${t('disclosure')}</div>`;
 }
+function toggleNav(btn){
+  const nav = btn.closest('nav');
+  const open = nav.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  btn.textContent = open ? '✕' : '☰';
+}
+function closeNav(){
+  document.querySelectorAll('nav.nav.open').forEach(n=>n.classList.remove('open'));
+  document.querySelectorAll('.navtoggle').forEach(b=>{ b.textContent='☰'; b.setAttribute('aria-expanded','false'); });
+}
 function navHTML(active){
   const L = [
     ['index.html','nav_home'],['guide.html','nav_guide'],['simulator.html','nav_sim'],
@@ -75,7 +85,8 @@ function navHTML(active){
   ];
   return `<header class="site"><nav class="nav">
     <a class="brand" href="index.html">🂡 Blackjack Lab <small>beatable math, honestly</small></a>
-    ${L.map(([h,k])=>`<a class="nl${active===h?' active':''}" href="${h}" data-i18n="${k}">${t(k)}</a>`).join('')}
+    <button class="navtoggle" type="button" aria-label="Menu" aria-expanded="false" onclick="toggleNav(this)">☰</button>
+    <span class="navlinks">${L.map(([h,k])=>`<a class="nl${active===h?' active':''}" href="${h}" data-i18n="${k}" onclick="closeNav()">${t(k)}</a>`).join('')}</span>
     <button class="langbtn" id="langbtn" onclick="setLang(LANG==='zh'?'en':'zh')">${LANG==='zh'?'EN':'中'}</button>
   </nav></header>`;
 }
@@ -83,7 +94,7 @@ function newsletterHTML(){
   return `<div class="wrap"><section class="block" style="margin-bottom:8px"><div class="card" style="text-align:center;border:1px solid var(--gold)">
     <h3 style="color:var(--gold);margin-top:0">${t('nl_title')}</h3>
     <p class="muted">${t('nl_desc')}</p>
-    <div style="max-width:480px;margin:0 auto"><iframe src="https://iamthecasinocombethehouse.substack.com/embed" width="480" height="320" style="border:1px solid #EEE;background:#fff;max-width:100%;border-radius:8px" frameborder="0" scrolling="no" title="Subscribe"></iframe></div>
+    <div style="max-width:480px;margin:0 auto"><iframe src="https://iamthecasinocombethehouse.substack.com/embed" width="100%" height="320" style="border:1px solid #EEE;background:#fff;width:100%;max-width:480px;height:320px;border-radius:8px" frameborder="0" scrolling="no" title="Subscribe"></iframe></div>
   </div></section></div>`;
 }
 function footerHTML(){

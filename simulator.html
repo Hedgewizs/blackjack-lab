@@ -65,7 +65,7 @@ const STRAT_NOTES = {
 let eng=null, betAmt=10;
 function pickV(o){ return (LANG==='zh'?o.zh:o.en)||o.en; }
 function newSession(){
-  const vk=document.getElementById('variant').value;
+  const vk=document.getElementById('variant').value||'classic';
   eng=new BlackjackEngine(vk);
   eng.setBankroll(+document.getElementById('s_bank').value||500);
   betAmt=+document.getElementById('s_bet').value||10;
@@ -233,8 +233,9 @@ function buildSideBetPanel(){
 function onLangChange(){
   const v=document.getElementById('variant');
   const cur=v.value;
-  v.innerHTML=['classic','sixfive','european','spanish21','switch','freebet'].map(k=>`<option value="${k}">${t('v_'+k)}</option>`).join('');
-  v.value=cur;
+  const keys=['classic','sixfive','european','spanish21','switch','freebet'];
+  v.innerHTML=keys.map(k=>`<option value="${k}">${t('v_'+k)}</option>`).join('');
+  v.value=keys.includes(cur)?cur:'classic'; /* first load: no selection yet, default to Classic so the select never shows blank */
   buildSideBetPanel();
   if(eng) renderAll();
 }

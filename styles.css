@@ -130,3 +130,24 @@ summary{cursor:pointer;font-weight:700;color:var(--gold)}
 .stratgrid .c.D{background:#1a5fa8;color:#fff}
 .stratgrid .c.P{background:#7a5c1e;color:#fff}
 @media(max-width:560px){.hero h1{font-size:1.8rem}.pcard{width:52px;height:76px}}
+
+/* ---------- mobile nav (hamburger) ---------- */
+.navtoggle{display:none;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:8px;padding:6px 12px;font-size:1.15rem;line-height:1;cursor:pointer;min-width:44px;min-height:40px}
+.navlinks{display:contents}
+@media(max-width:720px){
+  .navtoggle{display:block}
+  .navlinks{display:none}
+  .nav.open .navlinks{display:flex;flex-direction:column;flex-basis:100%;gap:2px;padding:8px 0 4px}
+  .nav.open a.nl{display:block;padding:11px 12px;font-size:1rem}
+  .langbtn{min-height:40px}
+}
+
+/* ---------- mobile forms: stack rows full-width ---------- */
+@media(max-width:560px){
+  .rowflex{flex-direction:column;align-items:stretch}
+  .rowflex label.f{width:100%}
+  .rowflex input[type=number],.rowflex input[type=text],.rowflex select{max-width:none!important;width:100%!important}
+  .rowflex .btn.small.danger{align-self:flex-start;width:auto;min-width:44px;min-height:44px}
+  .checkrow{justify-content:flex-start;text-align:left}
+  .checkrow label{flex:1}
+}
